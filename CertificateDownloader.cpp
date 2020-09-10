@@ -87,11 +87,11 @@ namespace Apostol {
             const auto& URI = Key.CertURI("web");
 
             if (URI.IsEmpty()) {
-                Log()->Error(APP_LOG_WARN, 0, _T("Certificate URI is empty."));
+                Log()->Error(APP_LOG_NOTICE, 0, _T("Certificate URI in provider \"%s\" is empty."), Key.Name.c_str());
                 return;
             }
 
-            Log()->Debug(0, _T("Trying to fetch public keys from: %s"), URI.c_str());
+            Log()->Error(APP_LOG_INFO, 0, _T("Trying to fetch public keys from: %s"), URI.c_str());
 
 #ifdef WITH_CURL
             CString jsonString;
@@ -115,14 +115,14 @@ namespace Apostol {
                 Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Error: %s"), e.what());
             }
 #else
-            auto OnRequest = [this, &Key](CHTTPClient *Sender, CRequest *Request) {
+            auto OnRequest = [&Key](CHTTPClient *Sender, CRequest *Request) {
                 Key.StatusTime = Now();
                 Key.Status = CProvider::ksFetching;
                 CLocation Location(Key.CertURI("web"));
                 CRequest::Prepare(Request, "GET", Location.pathname.c_str());
             };
 
-            auto OnExecute = [this, &Key](CTCPConnection *AConnection) {
+            auto OnExecute = [&Key](CTCPConnection *AConnection) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LReply = LConnection->Reply();
 
@@ -144,7 +144,7 @@ namespace Apostol {
                 return true;
             };
 
-            auto OnException = [this, &Key](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [&Key](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
