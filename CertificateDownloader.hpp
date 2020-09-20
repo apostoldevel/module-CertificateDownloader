@@ -53,11 +53,6 @@ namespace Apostol {
 
             void InitMethods() override;
 
-        protected:
-#ifdef WITH_POSTGRESQL
-            void DoPostgresQueryExecuted(CPQPollQuery *APollQuery) override;
-            void DoPostgresQueryException(CPQPollQuery *APollQuery, Delphi::Exception::Exception *AException) override;
-#endif
         public:
 
             explicit CCertificateDownloader(CModuleProcess *AProcess);

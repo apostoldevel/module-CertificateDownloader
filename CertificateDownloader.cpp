@@ -67,19 +67,7 @@ namespace Apostol {
 #endif
         }
         //--------------------------------------------------------------------------------------------------------------
-#ifdef WITH_POSTGRESQL
-        void CCertificateDownloader::DoPostgresQueryExecuted(CPQPollQuery *APollQuery) {
-            clock_t start = clock();
 
-            log_debug1(APP_LOG_DEBUG_CORE, Log(), 0, _T("Query executed runtime: %.2f ms."), (double) ((clock() - start) / (double) CLOCKS_PER_SEC * 1000));
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CCertificateDownloader::DoPostgresQueryException(CPQPollQuery *APollQuery, Delphi::Exception::Exception *AException) {
-
-        }
-        //--------------------------------------------------------------------------------------------------------------
-#endif
         void CCertificateDownloader::FetchCerts(CProvider &Key) {
 
             Key.Status = CProvider::ksError;
@@ -112,7 +100,7 @@ namespace Apostol {
                     Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Failed: %s (%s)."), m_Curl.GetErrorMessage().c_str(), URI.c_str());
                 }
             } catch (Delphi::Exception::Exception &e) {
-                Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Error: %s"), e.what());
+                Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Error: %s"), E.what());
             }
 #else
             auto OnRequest = [&Key](CHTTPClient *Sender, CRequest *Request) {
@@ -135,8 +123,8 @@ namespace Apostol {
                     Key.Keys << LReply->Content;
 
                     Key.Status = CProvider::ksSuccess;
-                } catch (Delphi::Exception::Exception &e) {
-                    Log()->Error(APP_LOG_INFO, 0, "[Certificate] Message: %s", e.what());
+                } catch (Delphi::Exception::Exception &E) {
+                    Log()->Error(APP_LOG_INFO, 0, "[Certificate] Message: %s", E.what());
                     Key.Status = CProvider::ksError;
                 }
 
@@ -144,11 +132,11 @@ namespace Apostol {
                 return true;
             };
 
-            auto OnException = [&Key](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [&Key](CTCPConnection *AConnection, const Delphi::Exception::Exception &E) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
-                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
+                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), E.what());
 
                 Key.Status = CProvider::ksError;
             };
