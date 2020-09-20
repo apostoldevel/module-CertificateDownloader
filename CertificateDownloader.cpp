@@ -103,11 +103,11 @@ namespace Apostol {
                 Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Error: %s"), E.what());
             }
 #else
-            auto OnRequest = [&Key](CHTTPClient *Sender, CRequest *Request) {
+            auto OnRequest = [&Key](CHTTPClient *Sender, CHTTPRequest *Request) {
                 Key.StatusTime = Now();
                 Key.Status = CProvider::ksFetching;
                 CLocation Location(Key.CertURI("web"));
-                CRequest::Prepare(Request, "GET", Location.pathname.c_str());
+                CHTTPRequest::Prepare(Request, "GET", Location.pathname.c_str());
             };
 
             auto OnExecute = [&Key](CTCPConnection *AConnection) {
